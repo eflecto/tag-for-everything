@@ -3,7 +3,7 @@
     "name": "Tag for Everything",
     "version": "1.0.0",
     "minAppVersion": "0.15.0",
-    "description": "Mass tag management for Obsidian: add tags to all notes in a folder, find and organize untagged notes automatically.",
+    "description": "Mass tag management: add tags to all notes in a folder, find and organize untagged notes automatically.",
     "author": "eflecto",
     "authorUrl": "https://github.com/eflecto",
     "isDesktopOnly": false
