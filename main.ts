@@ -268,7 +268,7 @@ class TagForEverythingSettingTab extends PluginSettingTab {
             .setName('Target folder')
             .setDesc('Choose the folder to add tags to all notes inside')
             .addText(text => text
-                .setPlaceholder('folder/subfolder')
+                .setPlaceholder('Folder/subfolder')
                 .setValue(this.plugin.settings.targetFolder)
                 .onChange(async (value) => {
                     this.plugin.settings.targetFolder = value;
@@ -279,7 +279,7 @@ class TagForEverythingSettingTab extends PluginSettingTab {
             .setName('Tags to add')
             .setDesc('Enter tags separated by commas (e.g., tag1, tag2, tag3). You can use # or not.')
             .addText(text => text
-                .setPlaceholder('tag1, tag2, tag3')
+                .setPlaceholder('Tag1, tag2, tag3')
                 .setValue(this.plugin.settings.tagsToAdd)
                 .onChange(async (value) => {
                     this.plugin.settings.tagsToAdd = value;
@@ -342,7 +342,7 @@ class TagForEverythingSettingTab extends PluginSettingTab {
             .setName('Folder for untagged notes')
             .setDesc('Specify the folder where untagged notes will be moved')
             .addText(text => text
-                .setPlaceholder('untagged notes')
+                .setPlaceholder('Untagged notes')
                 .setValue(this.plugin.settings.untaggedFolder)
                 .onChange(async (value) => {
                     this.plugin.settings.untaggedFolder = value;
@@ -353,7 +353,7 @@ class TagForEverythingSettingTab extends PluginSettingTab {
             .setName('Tag for untagged notes')
             .setDesc('Tag to add to all untagged notes')
             .addText(text => text
-                .setPlaceholder('untagged')
+                .setPlaceholder('Untagged')
                 .setValue(this.plugin.settings.untaggedTag)
                 .onChange(async (value) => {
                     this.plugin.settings.untaggedTag = value;
