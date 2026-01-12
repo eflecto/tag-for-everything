@@ -259,14 +259,9 @@ class TagForEverythingSettingTab extends PluginSettingTab {
 
         containerEl.empty();
 
-        // Main heading
-        new Setting(containerEl)
-            .setName('Tag for Everything settings')
-            .setHeading();
-
         // Section 1: Add tags to existing notes in folder
         new Setting(containerEl)
-            .setName('Add tags to existing notes in folder')
+            .setName('Bulk tag addition')
             .setHeading();
 
         new Setting(containerEl)
@@ -322,12 +317,12 @@ class TagForEverythingSettingTab extends PluginSettingTab {
 
         // Section 2: Untagged notes management
         new Setting(containerEl)
-            .setName('Untagged notes management')
+            .setName('Untagged notes')
             .setHeading();
 
         // Untagged files counter
         const untaggedInfoSetting = new Setting(containerEl)
-            .setName('Untagged notes')
+            .setName('Notes without tags')
             .setDesc('Number of notes without any tags');
 
         this.untaggedCountEl = untaggedInfoSetting.descEl.createDiv();
