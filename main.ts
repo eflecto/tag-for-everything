@@ -34,7 +34,7 @@ export default class TagForEverythingPlugin extends Plugin {
         await this.saveData(this.settings);
     }
 
-    // Добавление тегов к заметкам в указанной папке
+    // Add tags to notes in specified folder
     async addTagsToFolder(folder: string, tags: string[]): Promise<number> {
         if (!folder || tags.length === 0) {
             new Notice('Please specify both folder and tags');
@@ -63,7 +63,7 @@ export default class TagForEverythingPlugin extends Plugin {
         return processedCount;
     }
 
-    // Добавление тегов к одному файлу
+    // Add tags to a single file
     async addTagsToFile(file: TFile, tags: string[]) {
         const content = await this.app.vault.read(file);
         const newContent = this.addTagsToContent(content, tags);
@@ -73,19 +73,17 @@ export default class TagForEverythingPlugin extends Plugin {
         }
     }
 
-    // Добавление тегов к содержимому файла
+    // Add tags to file content
     addTagsToContent(content: string, tags: string[]): string {
         const lines = content.split('\n');
         let frontmatterEnd = -1;
         let frontmatterStart = -1;
-        let inFrontmatter = false;
 
-        // Проверяем наличие frontmatter
+        // Check for frontmatter
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].trim() === '---') {
                 if (frontmatterStart === -1) {
                     frontmatterStart = i;
-                    inFrontmatter = true;
                 } else {
                     frontmatterEnd = i;
                     break;
@@ -93,11 +91,11 @@ export default class TagForEverythingPlugin extends Plugin {
             }
         }
 
-        // Нормализуем теги (удаляем # если есть)
+        // Normalize tags (remove # if present)
         const normalizedTags = tags.map(tag => tag.replace(/^#/, '').trim());
 
         if (frontmatterStart !== -1 && frontmatterEnd !== -1) {
-            // Есть frontmatter, работаем с ним
+            // Has frontmatter, work with it
             let existingTags: string[] = [];
             let tagsLineIndex = -1;
 
@@ -108,32 +106,32 @@ export default class TagForEverythingPlugin extends Plugin {
                     const tagsString = line.substring(5).trim();
                     
                     if (tagsString.startsWith('[') && tagsString.endsWith(']')) {
-                        // Формат массива: tags: [tag1, tag2]
+                        // Array format: tags: [tag1, tag2]
                         existingTags = tagsString
                             .slice(1, -1)
                             .split(',')
                             .map(t => t.trim().replace(/['"]/g, ''))
                             .filter(t => t.length > 0);
                     } else if (tagsString.length > 0) {
-                        // Одиночный тег: tags: tag1
+                        // Single tag: tags: tag1
                         existingTags = [tagsString.replace(/['"]/g, '')];
                     }
                     break;
                 }
             }
 
-            // Объединяем существующие теги с новыми (без дубликатов)
+            // Merge existing tags with new ones (no duplicates)
             const allTags = [...new Set([...existingTags, ...normalizedTags])];
 
             if (tagsLineIndex !== -1) {
-                // Обновляем существующую строку tags
+                // Update existing tags line
                 lines[tagsLineIndex] = `tags: [${allTags.join(', ')}]`;
             } else {
-                // Добавляем новую строку tags после frontmatter start
+                // Add new tags line after frontmatter start
                 lines.splice(frontmatterStart + 1, 0, `tags: [${allTags.join(', ')}]`);
             }
         } else {
-            // Нет frontmatter, создаем его
+            // No frontmatter, create it
             const newFrontmatter = [
                 '---',
                 `tags: [${normalizedTags.join(', ')}]`,
@@ -146,7 +144,7 @@ export default class TagForEverythingPlugin extends Plugin {
         return lines.join('\n');
     }
 
-    // Получение файлов без тегов
+    // Get files without tags
     async getUntaggedFiles(): Promise<TFile[]> {
         const files = this.app.vault.getMarkdownFiles();
         const untaggedFiles: TFile[] = [];
@@ -161,20 +159,18 @@ export default class TagForEverythingPlugin extends Plugin {
         return untaggedFiles;
     }
 
-    // Проверка наличия тегов в файле
+    // Check if file has tags
     async fileHasTags(file: TFile): Promise<boolean> {
         const content = await this.app.vault.read(file);
         const lines = content.split('\n');
-        let inFrontmatter = false;
         let frontmatterStart = -1;
         let frontmatterEnd = -1;
 
-        // Проверяем frontmatter
+        // Check frontmatter
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].trim() === '---') {
                 if (frontmatterStart === -1) {
                     frontmatterStart = i;
-                    inFrontmatter = true;
                 } else {
                     frontmatterEnd = i;
                     break;
@@ -190,8 +186,8 @@ export default class TagForEverythingPlugin extends Plugin {
             }
         }
 
-        // Проверяем встроенные теги в тексте
-        const inlineTagRegex = /#[\w\-\/]+/g;
+        // Check inline tags in text
+        const inlineTagRegex = /#[\w\-/]+/g;
         if (content.match(inlineTagRegex)) {
             return true;
         }
@@ -199,7 +195,7 @@ export default class TagForEverythingPlugin extends Plugin {
         return false;
     }
 
-    // Обработка файлов без тегов
+    // Process untagged files
     async processUntaggedFiles(): Promise<number> {
         const untaggedFiles = await this.getUntaggedFiles();
         
@@ -211,7 +207,7 @@ export default class TagForEverythingPlugin extends Plugin {
         const tag = this.settings.untaggedTag.replace(/^#/, '').trim();
         const targetFolder = normalizePath(this.settings.untaggedFolder);
 
-        // Создаем папку если её нет
+        // Create folder if it doesn't exist
         if (!await this.app.vault.adapter.exists(targetFolder)) {
             await this.app.vault.createFolder(targetFolder);
         }
@@ -220,14 +216,14 @@ export default class TagForEverythingPlugin extends Plugin {
 
         for (const file of untaggedFiles) {
             try {
-                // Добавляем тег
+                // Add tag
                 await this.addTagsToFile(file, [tag]);
 
-                // Перемещаем файл если он не в целевой папке
+                // Move file if not in target folder
                 if (!file.path.startsWith(targetFolder)) {
                     const newPath = normalizePath(`${targetFolder}/${file.name}`);
                     
-                    // Если файл с таким именем уже существует, добавляем суффикс
+                    // If file with same name exists, add suffix
                     let finalPath = newPath;
                     let counter = 1;
                     while (await this.app.vault.adapter.exists(finalPath)) {
@@ -263,10 +259,15 @@ class TagForEverythingSettingTab extends PluginSettingTab {
 
         containerEl.empty();
 
-        containerEl.createEl('h2', { text: 'Tag for Everything Settings' });
+        // Main heading
+        new Setting(containerEl)
+            .setName('Tag for Everything settings')
+            .setHeading();
 
-        // Секция 1: Добавление тегов к существующим заметкам в папке
-        containerEl.createEl('h3', { text: 'Add tags to existing notes in folder' });
+        // Section 1: Add tags to existing notes in folder
+        new Setting(containerEl)
+            .setName('Add tags to existing notes in folder')
+            .setHeading();
 
         new Setting(containerEl)
             .setName('Target folder')
@@ -294,7 +295,7 @@ class TagForEverythingSettingTab extends PluginSettingTab {
             .setName('Apply tags')
             .setDesc('Add specified tags to all notes in the target folder')
             .addButton(button => button
-                .setButtonText('Apply Tags to Folder')
+                .setButtonText('Apply tags to folder')
                 .setCta()
                 .onClick(async () => {
                     button.setDisabled(true);
@@ -313,22 +314,24 @@ class TagForEverythingSettingTab extends PluginSettingTab {
                     new Notice(`Tags added to ${count} file(s)`);
                     
                     button.setDisabled(false);
-                    button.setButtonText('Apply Tags to Folder');
+                    button.setButtonText('Apply tags to folder');
                 }));
 
-        // Разделитель
+        // Separator
         containerEl.createEl('hr');
 
-        // Секция 2: Обработка заметок без тегов
-        containerEl.createEl('h3', { text: 'Untagged notes management' });
+        // Section 2: Untagged notes management
+        new Setting(containerEl)
+            .setName('Untagged notes management')
+            .setHeading();
 
-        // Счетчик файлов без тегов
+        // Untagged files counter
         const untaggedInfoSetting = new Setting(containerEl)
             .setName('Untagged notes')
             .setDesc('Number of notes without any tags');
 
         this.untaggedCountEl = untaggedInfoSetting.descEl.createDiv();
-        this.updateUntaggedCount();
+        void this.updateUntaggedCount();
 
         new Setting(containerEl)
             .setName('Refresh count')
@@ -366,7 +369,7 @@ class TagForEverythingSettingTab extends PluginSettingTab {
             .setName('Process untagged notes')
             .setDesc('Add tag to all untagged notes and move them to specified folder')
             .addButton(button => button
-                .setButtonText('Process Untagged Notes')
+                .setButtonText('Process untagged notes')
                 .setCta()
                 .onClick(async () => {
                     button.setDisabled(true);
@@ -378,14 +381,13 @@ class TagForEverythingSettingTab extends PluginSettingTab {
                     await this.updateUntaggedCount();
 
                     button.setDisabled(false);
-                    button.setButtonText('Process Untagged Notes');
+                    button.setButtonText('Process untagged notes');
                 }));
     }
 
     async updateUntaggedCount() {
         const untaggedFiles = await this.plugin.getUntaggedFiles();
         this.untaggedCountEl.setText(`Found ${untaggedFiles.length} untagged note(s)`);
-        this.untaggedCountEl.style.fontWeight = 'bold';
-        this.untaggedCountEl.style.color = untaggedFiles.length > 0 ? 'var(--text-warning)' : 'var(--text-success)';
+        this.untaggedCountEl.addClass(untaggedFiles.length > 0 ? 'mod-warning' : 'mod-success');
     }
 }
